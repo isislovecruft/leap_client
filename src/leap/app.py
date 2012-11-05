@@ -49,14 +49,16 @@ def main():
         fileh.setFormatter(formatter)
         logger.addHandler(fileh)
 
-    logger.info('Starting app')
-    app = QApplication(sys.argv)
-
-    # load translation strings
+    # load translation strings before app widgets
     translator = QtCore.QTranslator()
     translator.load("translate/test.qm")
-    app.installTranslator(translator)
 
+    logger.info('Starting app')
+    app = QApplication(sys.argv)
+    app.installTranslator(translator)
+    import pdb4qt as pdb; pdb.set_trace()
+
+    
     # needed for initializing qsettings
     # it will write .config/leap/leap.conf
     # top level app settings
