@@ -4,6 +4,7 @@ import logging
 import sip
 sip.setapi('QVariant', 2)
 sip.setapi('QString', 2)
+from PyQt4 import QtCore
 from PyQt4.QtGui import (QApplication, QSystemTrayIcon, QMessageBox)
 
 from leap import __version__ as VERSION
@@ -50,6 +51,11 @@ def main():
 
     logger.info('Starting app')
     app = QApplication(sys.argv)
+
+    # load translation strings
+    translator = QtCore.QTranslator()
+    translator.load("translate/test.qm")
+    app.installTranslator(translator)
 
     # needed for initializing qsettings
     # it will write .config/leap/leap.conf

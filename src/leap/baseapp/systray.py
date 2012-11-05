@@ -112,17 +112,23 @@ class StatusAwareTrayIconMixin(object):
         creates actions to be binded to tray icon
         """
         # XXX change action name on (dis)connect
-        self.connAct = QtGui.QAction("Encryption ON     turn &off", self,
+        self.connAct = QtGui.QAction(self.tr("Encryption ON     turn &off"), self,
                                      triggered=lambda: self.start_or_stopVPN())
 
-        self.detailsAct = QtGui.QAction("&Details...",
+        self.detailsAct = QtGui.QAction(self.tr("&Details..."),
                                         self,
                                         triggered=self.detailsWin)
-        self.aboutAct = QtGui.QAction("&About", self,
+        #self.minimizeAction = QtGui.QAction("Mi&nimize", self,
+                                            #triggered=self.hide)
+        #self.maximizeAction = QtGui.QAction("Ma&ximize", self,
+                                            #triggered=self.showMaximized)
+        #self.restoreAction = QtGui.QAction("&Restore", self,
+                                           #triggered=self.showNormal)
+        self.aboutAct = QtGui.QAction(self.tr("&About"), self,
                                       triggered=self.about)
-        self.aboutQtAct = QtGui.QAction("About Q&t", self,
+        self.aboutQtAct = QtGui.QAction(self.tr("About Q&t"), self,
                                         triggered=QtGui.qApp.aboutQt)
-        self.quitAction = QtGui.QAction("&Quit", self,
+        self.quitAction = QtGui.QAction(self.tr("&Quit"), self,
                                         triggered=self.cleanupAndQuit)
 
     def toggleEIPAct(self):
@@ -130,9 +136,9 @@ class StatusAwareTrayIconMixin(object):
         # XXX We need to get the REAL info for Encryption state.
         # (now is ON as soon as vpn launched)
         if self.eip_service_started is True:
-            self.connAct.setText('Encryption ON    turn o&ff')
+            self.connAct.setText(self.tr('Encryption ON    turn o&ff'))
         else:
-            self.connAct.setText('Encryption OFF   turn &on')
+            self.connAct.setText(self.tr('Encryption OFF   turn &on'))
 
     def detailsWin(self):
         visible = self.isVisible()
@@ -151,7 +157,8 @@ class StatusAwareTrayIconMixin(object):
         content = content + (
             "<br><a href='https://leap.se/'>"
             "https://leap.se</a>")
-        QtGui.QMessageBox.about(self, "About", content)
+        QtGui.QMessageBox.about(self, self.tr("About"), self.tr(content))
+        import pdb4qt as pdb; pdb.set_trace()
 
     def setConnWidget(self, icon_name):
         oldlayout = self.statusIconBox.layout()
