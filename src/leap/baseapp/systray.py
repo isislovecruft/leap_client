@@ -92,7 +92,9 @@ class StatusAwareTrayIconMixin(object):
         self.trayIconMenu.addAction(self.detailsAct)
         self.trayIconMenu.addSeparator()
         self.trayIconMenu.addAction(self.aboutAct)
-        self.trayIconMenu.addAction(self.aboutQtAct)
+        # we should get this hidden inside the "about" dialog
+        # (as a little button maybe)
+        #self.trayIconMenu.addAction(self.aboutQtAct)
         self.trayIconMenu.addSeparator()
         self.trayIconMenu.addAction(self.quitAction)
 
@@ -139,6 +141,21 @@ class StatusAwareTrayIconMixin(object):
             self.connAct.setText(self.tr('Encryption ON    turn o&ff'))
         else:
             self.connAct.setText(self.tr('Encryption OFF   turn &on'))
+       # XXX get STATUS CONSTANTS INSTEAD
+
+        icon_status = self.conductor.get_icon_name()
+        if icon_status == "connected":
+            self.connAct.setEnabled(True)
+            self.connAct.setText('Encryption ON    turn o&ff')
+            return
+        if icon_status == "disconnected":
+            self.connAct.setEnabled(True)
+            self.connAct.setText('Encryption OFF   turn &on')
+            return
+        if icon_status == "connecting":
+            self.connAct.setDisabled(True)
+            self.connAct.setText('connecting...')
+            return
 
     def detailsWin(self):
         visible = self.isVisible()
@@ -203,31 +220,31 @@ class StatusAwareTrayIconMixin(object):
         self.statusUpdate()
 
     @QtCore.pyqtSlot(object)
-    def onStatusChange(self, status):
+    def onOpenVPNStatusChange(self, status):
         """
-        updates icon
+        updates icon, according to the openvpn status change.
         """
         icon_name = self.conductor.get_icon_name()
 
         # XXX refactor. Use QStateMachine
 
         if icon_name in ("disconnected", "connected"):
-            self.changeLeapStatus.emit(icon_name)
+            self.eipStatusChange.emit(icon_name)
 
         if icon_name in ("connecting"):
             # let's see how it matches
             leap_status_name = self.conductor.get_leap_status()
-            self.changeLeapStatus.emit(leap_status_name)
+            self.eipStatusChange.emit(leap_status_name)
 
         self.setIcon(icon_name)
         # change connection pixmap widget
         self.setConnWidget(icon_name)
 
     @QtCore.pyqtSlot(str)
-    def onChangeLeapConnStatus(self, newstatus):
+    def onEIPConnStatusChange(self, newstatus):
         """
-        slot for LEAP status changes
-        not to be confused with onStatusChange.
+        slot for EIP status changes
+        not to be confused with onOpenVPNStatusChange.
         this only updates the non-debug LEAP Status line
         next to the connection icon.
         """
