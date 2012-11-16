@@ -6,9 +6,11 @@ import sip
 sip.setapi('QVariant', 2)
 sip.setapi('QString', 2)
 from PyQt4.QtGui import (QApplication, QSystemTrayIcon, QMessageBox)
+from PyQt4 import QtCore
 
 from leap import __version__ as VERSION
 from leap.baseapp.mainwindow import LeapWindow
+from leap.gui import locale_rc
 
 
 def main():
@@ -51,6 +53,17 @@ def main():
 
     logger.info('Starting app')
     app = QApplication(sys.argv)
+
+    # To test:
+    # $ LANG=es ./app.py
+    locale = QtCore.QLocale.system().name()
+    print locale
+    qtTranslator = QtCore.QTranslator()
+    if qtTranslator.load("qt_%s" % locale, ":/translations"):
+        app.installTranslator(qtTranslator)
+    appTranslator = QtCore.QTranslator()
+    if appTranslator.load("leap_client_%s" % locale, ":/translations"):
+        app.installTranslator(appTranslator)
 
     # needed for initializing qsettings
     # it will write .config/leap/leap.conf
