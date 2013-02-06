@@ -112,6 +112,10 @@ class LeapDatabase(HTTPDatabase):
 
 
 class LeapSyncTarget(HTTPSyncTarget):
+    """
+    A SyncTarget that encrypts data before sending and decrypts data after
+    receiving.
+    """
 
     def __init__(self, url, creds=None, soledad=None):
         super(LeapSyncTarget, self).__init__(url, creds)
@@ -208,3 +212,4 @@ class LeapSyncTarget(HTTPSyncTarget):
         res = self._parse_sync_stream(data, return_doc_cb, ensure_callback)
         data = None
         return res['new_generation'], res['new_transaction_id']
+

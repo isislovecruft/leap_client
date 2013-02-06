@@ -1,10 +1,17 @@
+# general imports
 import uuid
 from base64 import b64encode, b64decode
+import re
+# u1db
 from u1db import errors
 from u1db.sync import LocalSyncTarget
 from u1db.backends.inmemory import InMemoryIndex
+from u1db.remote.server_state import ServerState
+from u1db.errors import DatabaseDoesNotExist
+# couchdb
 from couchdb.client import Server, Document as CouchDocument
 from couchdb.http import ResourceNotFound
+# leap
 from leap.soledad.backends.objectstore import ObjectStore
 from leap.soledad.backends.leap_backend import LeapDocument
 
@@ -14,8 +21,28 @@ except ImportError:
     import json  # noqa
 
 
+class InvalidURLError(Exception):
+    pass
+
+
 class CouchDatabase(ObjectStore):
     """A U1DB implementation that uses Couch as its persistence layer."""
+
+    @classmethod
+    def open_database(cls, url, create):
+        # get database from url
+        m = re.match('(^https?://[^/]+)/(.+)$', url)
+        if not m:
+            raise InvalidURLError
+        url = m.group(1)
+        dbname = m.group(2)
+        server = Server(url=url)
+        try:
+            server[dbname]
+        except ResourceNotFound:
+            if not create:
+                raise DatabaseDoesNotExist()
+        return cls(url, dbname)
 
     def __init__(self, url, database, replica_uid=None, full_commit=True,
                  session=None):
@@ -215,3 +242,27 @@ class CouchSyncTarget(LocalSyncTarget):
         self._db._set_replica_gen_and_trans_id(
             source_replica_uid, source_replica_generation,
             source_replica_transaction_id)
+
+class CouchServerState(ServerState):
+    """
+    Inteface of the WSGI server with the CouchDB backend.
+    """
+
+    def __init__(self, couch_url):
+        self.couch_url = couch_url
+
+    def open_database(self, dbname):
+        # TODO: open couch
+        from leap.soledad.backends.couch import CouchDatabase
+        return CouchDatabase.open_database(self.couch_url + '/' + dbname,
+                                           create=False)
+
+    def ensure_database(self, dbname):
+        from leap.soledad.backends.couch import CouchDatabase
+        db = CouchDatabase.open_database(self.couch_url + '/' + dbname,
+                                         create=True)
+        return db, db._replica_uid
+
+    def delete_database(self, dbname):
+        from leap.soledad.backends.couch import CouchDatabase
+        CouchDatabase.delete_database(self.couch_url + '/' + dbname)
